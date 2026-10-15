@@ -1,0 +1,49 @@
+[package]
+name = "moa"
+version = "1.0.0"
+edition = "2021"
+rust-version = "1.75"
+license = "CC-BY-NC-4.0"
+description = "Moa — a faithful, 100% Rust port of Markov clustering (MCL) with a MinHash ortholog front-end and rayon / HydraMPP / GPU expansion engines."
+authors = ["Richard Allen White III <rwhit101@charlotte.edu>"]
+repository = "https://github.com/raw-lab/moa"
+homepage = "https://www.rawlab.org"
+keywords = ["mcl", "markov-clustering", "bioinformatics", "graph", "minhash"]
+categories = ["science", "command-line-utilities", "algorithms"]
+
+[lib]
+name = "moa_core"
+path = "src/lib.rs"
+
+[[bin]]
+name = "moa"
+path = "src/main.rs"
+
+[dependencies]
+# Data-parallel column expansion / sketching on a single node.
+rayon = "1.10"
+# Distributed, Ray-style task engine (laptop -> SLURM). Vendored, path dep.
+hydra-mpp-core = { path = "../vendor/hydra-mpp-core" }
+# Wire format for the HydraMPP expansion jobs.
+serde = { version = "1", features = ["derive"] }
+
+# --- GPU expansion (optional, on by default) ------------------------------
+# wgpu is a pure-Rust WebGPU implementation; it targets Vulkan, Metal, DX12 and
+# GL, and falls back to a software adapter (lavapipe/llvmpipe) when no hardware
+# GPU is present, so the code path is always exercisable.
+wgpu = { version = "0.19", optional = true }
+pollster = { version = "0.3", optional = true }
+bytemuck = { version = "1", optional = true }
+
+# --- MSRV pins (only pulled with the `gpu` feature) -----------------------
+# The wgpu 0.19 dependency tree's newest transitive *patch* releases have crept
+# past our Rust 1.75 floor (they require the unstable `edition2024` cargo
+# feature). These three pins hold the graph at the last 1.75-buildable versions.
+# Bump them together with the Rust floor, not before.
+hashbrown = { version = "=0.14.5", optional = true }
+indexmap = { version = "=2.2.6", optional = true }
+zerocopy = { version = "=0.7.35", optional = true }
+
+[features]
+default = ["gpu"]
+gpu = ["dep:wgpu", "dep:pollster", "dep:bytemuck", "dep:hashbrown", "dep:indexmap", "dep:zerocopy"]
