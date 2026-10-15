@@ -1,11 +1,41 @@
-[workspace]
-resolver = "2"
-members = ["moa", "vendor/hydra-mpp-core"]
+[package]
+name = "moa"
+version = "2.0.0"
+edition = "2021"
+rust-version = "1.80"
+license = "CC-BY-NC-4.0"
+description = "Moa — the reference-faithful, parallel Markov clustering (MCL) engine with a MinHash ortholog front-end. 100% Rust, rayon + HydraMPP."
+authors = ["Richard Allen White III <rwhit101@charlotte.edu>"]
+repository = "https://github.com/raw-lab/moa"
+homepage = "https://www.rawlab.org"
+readme = "README.md"
+exclude = ["scripts/__pycache__"]
+keywords = ["mcl", "markov-clustering", "bioinformatics", "minhash", "graph"]
+categories = ["science", "command-line-utilities", "algorithms", "concurrency"]
+build = "build.rs"
 
-# Release: tuned for the expansion/inflation inner loops. LTO + a single codegen
-# unit let the optimizer inline the sparse compose and the per-column prune across
-# module boundaries; the measured win on large graphs is worth the longer build.
+[lib]
+name = "moa_core"
+path = "src/lib.rs"
+
+[[bin]]
+name = "moa"
+path = "src/main.rs"
+
+[dependencies]
+# Work-stealing data parallelism on one node: components and columns.
+rayon = "1.10"
+# Ray-style task engine from the RAW Lab — laptop, multi-node, or SLURM.
+# Engine only: the `cli` default feature would pull in clap for its demo bins.
+hydra-mpp = { version = "1.0", default-features = false }
+# Task payloads (matrices travel as Arc: zero-copy on a local runtime).
+serde = { version = "1", features = ["derive", "rc"] }
+
 [profile.release]
 opt-level = 3
-lto = true
+lto = "fat"
 codegen-units = 1
+panic = "abort"
+
+[profile.bench]
+inherits = "release"

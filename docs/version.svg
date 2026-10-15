@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="752" height="384" viewBox="0 0 752 384">
+<style>text{font-family:"JetBrains Mono","DejaVu Sans Mono",Menlo,Consolas,monospace;font-size:14px;white-space:pre;dominant-baseline:alphabetic}</style>
+<rect width="752" height="384" rx="10" fill="#14161a"/>
+<rect width="752" height="28" rx="10" fill="#22252b"/><rect y="18" width="752" height="10" fill="#22252b"/>
+<circle cx="18" cy="14" r="6" fill="#ff5f56"/><circle cx="38" cy="14" r="6" fill="#ffbd2e"/><circle cx="58" cy="14" r="6" fill="#27c93f"/>
+<text x="376.0" y="19" fill="#8b9099" text-anchor="middle" style="font-size:12px">moa version</text>
+<text x="68.6" y="50.8" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">,</text>
+<text x="77.0" y="50.8" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">_</text>
+<text x="102.3" y="50.8" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">_</text>
+<text x="110.7" y="50.8" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">,</text>
+<text x="178.2" y="50.8" fill="#008787" font-weight="700" textLength="227.6" lengthAdjust="spacingAndGlyphs">███╗   ███╗ ██████╗  █████╗</text>
+<text x="51.7" y="67.2" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">.</text>
+<text x="60.1" y="67.2" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">&#x27;</text>
+<text x="77.0" y="67.2" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">\</text>
+<text x="85.4" y="67.2" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">&#x27;</text>
+<text x="93.9" y="67.2" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">&#x27;</text>
+<text x="102.3" y="67.2" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">/</text>
+<text x="119.2" y="67.2" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">&#x27;</text>
+<text x="127.6" y="67.2" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">.</text>
+<text x="178.2" y="67.2" fill="#00af87" font-weight="700" textLength="236.0" lengthAdjust="spacingAndGlyphs">████╗ ████║██╔═══██╗██╔══██╗</text>
+<text x="43.3" y="83.6" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">/</text>
+<text x="68.6" y="83.6" fill="#ffffd7" textLength="8.4" lengthAdjust="spacingAndGlyphs">(</text>
+<text x="77.0" y="83.6" fill="#ffffd7" font-weight="700" textLength="8.4" lengthAdjust="spacingAndGlyphs">o</text>
+<text x="85.4" y="83.6" fill="#ffffd7" textLength="8.4" lengthAdjust="spacingAndGlyphs">)</text>
+<text x="93.9" y="83.6" fill="#ffffd7" textLength="8.4" lengthAdjust="spacingAndGlyphs">(</text>
+<text x="102.3" y="83.6" fill="#ffffd7" font-weight="700" textLength="8.4" lengthAdjust="spacingAndGlyphs">o</text>
+<text x="110.7" y="83.6" fill="#ffffd7" textLength="8.4" lengthAdjust="spacingAndGlyphs">)</text>
+<text x="136.0" y="83.6" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">\</text>
+<text x="178.2" y="83.6" fill="#00afaf" font-weight="700" textLength="236.0" lengthAdjust="spacingAndGlyphs">██╔████╔██║██║   ██║███████║</text>
+<text x="43.3" y="100.0" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">|</text>
+<text x="85.4" y="100.0" fill="#ffaf00" textLength="8.4" lengthAdjust="spacingAndGlyphs">/</text>
+<text x="93.9" y="100.0" fill="#ffaf00" textLength="8.4" lengthAdjust="spacingAndGlyphs">\</text>
+<text x="136.0" y="100.0" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">|</text>
+<text x="178.2" y="100.0" fill="#00d7af" font-weight="700" textLength="236.0" lengthAdjust="spacingAndGlyphs">██║╚██╔╝██║██║   ██║██╔══██║</text>
+<text x="43.3" y="116.4" fill="#ffaf00" textLength="8.4" lengthAdjust="spacingAndGlyphs">\</text>
+<text x="85.4" y="116.4" fill="#ffaf00" textLength="8.4" lengthAdjust="spacingAndGlyphs">\</text>
+<text x="93.9" y="116.4" fill="#ffaf00" textLength="8.4" lengthAdjust="spacingAndGlyphs">/</text>
+<text x="136.0" y="116.4" fill="#ffaf00" textLength="8.4" lengthAdjust="spacingAndGlyphs">/</text>
+<text x="178.2" y="116.4" fill="#5fd787" font-weight="700" textLength="236.0" lengthAdjust="spacingAndGlyphs">██║ ╚═╝ ██║╚██████╔╝██║  ██║</text>
+<text x="51.7" y="132.79999999999998" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">&#x27;</text>
+<text x="60.1" y="132.79999999999998" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">-</text>
+<text x="68.6" y="132.79999999999998" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">.</text>
+<text x="77.0" y="132.79999999999998" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">_</text>
+<text x="85.4" y="132.79999999999998" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">_</text>
+<text x="93.9" y="132.79999999999998" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">_</text>
+<text x="102.3" y="132.79999999999998" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">_</text>
+<text x="110.7" y="132.79999999999998" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">.</text>
+<text x="119.2" y="132.79999999999998" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">-</text>
+<text x="127.6" y="132.79999999999998" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">&#x27;</text>
+<text x="178.2" y="132.79999999999998" fill="#87d787" font-weight="700" textLength="236.0" lengthAdjust="spacingAndGlyphs">╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═╝</text>
+<text x="34.9" y="149.2" fill="#ffd75f" font-weight="700" textLength="50.6" lengthAdjust="spacingAndGlyphs">v2.0.0</text>
+<text x="102.3" y="149.2" fill="#d4d4d4" opacity="0.6" textLength="547.9" lengthAdjust="spacingAndGlyphs">reference-faithful Markov clustering · MinHash graphs · 100% Rust</text>
+<text x="34.9" y="165.6" fill="#af875f" textLength="269.8" lengthAdjust="spacingAndGlyphs">“Extinct bird. Living clusters.”</text>
+<text x="18.0" y="198.4" fill="#8a8a8a" textLength="16.9" lengthAdjust="spacingAndGlyphs">╭─</text>
+<text x="43.3" y="198.4" fill="#ffd75f" font-weight="700" textLength="25.3" lengthAdjust="spacingAndGlyphs">moa</text>
+<text x="77.0" y="198.4" fill="#8a8a8a" textLength="581.7" lengthAdjust="spacingAndGlyphs">────────────────────────────────────────────────────────────────────╮</text>
+<text x="18.0" y="214.79999999999998" fill="#8a8a8a" textLength="8.4" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="34.9" y="214.79999999999998" fill="#00afaf" textLength="59.0" lengthAdjust="spacingAndGlyphs">version</text>
+<text x="203.5" y="214.79999999999998" fill="#d4d4d4" font-weight="700" textLength="75.9" lengthAdjust="spacingAndGlyphs">moa 2.0.0</text>
+<text x="650.2" y="214.79999999999998" fill="#8a8a8a" textLength="8.4" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="18.0" y="231.2" fill="#8a8a8a" textLength="8.4" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="34.9" y="231.2" fill="#00afaf" textLength="67.4" lengthAdjust="spacingAndGlyphs">compiler</text>
+<text x="203.5" y="231.2" fill="#d4d4d4" textLength="295.1" lengthAdjust="spacingAndGlyphs">rustc 1.97.0 (2d8144b78 2026-07-07)</text>
+<text x="650.2" y="231.2" fill="#8a8a8a" textLength="8.4" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="18.0" y="247.6" fill="#8a8a8a" textLength="8.4" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="34.9" y="247.6" fill="#00afaf" textLength="50.6" lengthAdjust="spacingAndGlyphs">target</text>
+<text x="203.5" y="247.6" fill="#d4d4d4" textLength="202.3" lengthAdjust="spacingAndGlyphs">x86_64-unknown-linux-gnu</text>
+<text x="650.2" y="247.6" fill="#8a8a8a" textLength="8.4" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="18.0" y="263.99999999999994" fill="#8a8a8a" textLength="8.4" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="34.9" y="263.99999999999994" fill="#00afaf" textLength="59.0" lengthAdjust="spacingAndGlyphs">profile</text>
+<text x="203.5" y="263.99999999999994" fill="#d4d4d4" textLength="286.6" lengthAdjust="spacingAndGlyphs">release · LTO fat · 1 codegen unit</text>
+<text x="650.2" y="263.99999999999994" fill="#8a8a8a" textLength="8.4" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="18.0" y="280.4" fill="#8a8a8a" textLength="8.4" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="34.9" y="280.4" fill="#00afaf" textLength="59.0" lengthAdjust="spacingAndGlyphs">engines</text>
+<text x="203.5" y="280.4" fill="#d4d4d4" textLength="210.8" lengthAdjust="spacingAndGlyphs">serial · rayon · HydraMPP</text>
+<text x="650.2" y="280.4" fill="#8a8a8a" textLength="8.4" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="18.0" y="296.79999999999995" fill="#8a8a8a" textLength="8.4" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="34.9" y="296.79999999999995" fill="#00afaf" textLength="75.9" lengthAdjust="spacingAndGlyphs">hydra-mpp</text>
+<text x="203.5" y="296.79999999999995" fill="#d4d4d4" textLength="143.3" lengthAdjust="spacingAndGlyphs">1.0.0 (crates.io)</text>
+<text x="650.2" y="296.79999999999995" fill="#8a8a8a" textLength="8.4" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="18.0" y="313.19999999999993" fill="#8a8a8a" textLength="8.4" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="34.9" y="313.19999999999993" fill="#00afaf" textLength="59.0" lengthAdjust="spacingAndGlyphs">license</text>
+<text x="203.5" y="313.19999999999993" fill="#d4d4d4" textLength="311.9" lengthAdjust="spacingAndGlyphs">CC-BY-NC-4.0 · RAW Lab, UNC Charlotte</text>
+<text x="650.2" y="313.19999999999993" fill="#8a8a8a" textLength="8.4" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="18.0" y="329.59999999999997" fill="#8a8a8a" textLength="8.4" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="34.9" y="329.59999999999997" fill="#00afaf" textLength="67.4" lengthAdjust="spacingAndGlyphs">fidelity</text>
+<text x="203.5" y="329.59999999999997" fill="#5fd787" font-weight="700" textLength="8.4" lengthAdjust="spacingAndGlyphs">✔</text>
+<text x="220.3" y="329.59999999999997" fill="#d4d4d4" textLength="421.5" lengthAdjust="spacingAndGlyphs">167/167 battery cases byte-identical to mcl 22-282</text>
+<text x="650.2" y="329.59999999999997" fill="#8a8a8a" textLength="8.4" lengthAdjust="spacingAndGlyphs">│</text>
+<text x="18.0" y="345.99999999999994" fill="#8a8a8a" textLength="640.7" lengthAdjust="spacingAndGlyphs">╰──────────────────────────────────────────────────────────────────────────╯</text>
+<text x="34.9" y="362.4" fill="#5fd787" font-weight="700" textLength="8.4" lengthAdjust="spacingAndGlyphs">✔</text>
+<text x="51.7" y="362.4" fill="#d4d4d4" textLength="84.3" lengthAdjust="spacingAndGlyphs">reproduces</text>
+<text x="144.4" y="362.4" fill="#d4d4d4" font-weight="700" textLength="84.3" lengthAdjust="spacingAndGlyphs">mcl 22-282</text>
+<text x="237.2" y="362.4" fill="#d4d4d4" textLength="210.8" lengthAdjust="spacingAndGlyphs">partition-for-partition ·</text>
+<text x="456.4" y="362.4" fill="#d4d4d4" opacity="0.6" textLength="278.2" lengthAdjust="spacingAndGlyphs">run `moa doctor` to prove it here</text>
+</svg>

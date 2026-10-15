@@ -1,237 +1,284 @@
+<p align="center">
+  <img src="docs/version.svg" alt="moa — the moa's face beside the MOA wordmark" width="760">
+</p>
+
+<h1 align="center">moa</h1>
+
+<p align="center">
+  <b>The reference-faithful, parallel Markov clustering engine — and an alignment-free MinHash front-end.</b><br>
+  100% Rust · rayon + <a href="https://crates.io/crates/hydra-mpp">HydraMPP</a> · laptop → workstation → SLURM cluster
+</p>
+
+<p align="center"><i>“Extinct bird. Living clusters.”</i></p>
+
 ```
-              .-"-.
-             ( o o )
-              \ v /
-               '-'
-   ███╗   ███╗ ██████╗  █████╗
-   ████╗ ████║██╔═══██╗██╔══██╗
-   ██╔████╔██║██║   ██║███████║
-   ██║╚██╔╝██║██║   ██║██╔══██║
-   ██║ ╚═╝ ██║╚██████╔╝██║  ██║
-   ╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═╝
+      ,_  _,       ███╗   ███╗ ██████╗  █████╗
+    .' \''/ '.     ████╗ ████║██╔═══██╗██╔══██╗
+   /  (o)(o)  \    ██╔████╔██║██║   ██║███████║
+   |    /\    |    ██║╚██╔╝██║██║   ██║██╔══██║
+   \    \/    /    ██║ ╚═╝ ██║╚██████╔╝██║  ██║
+    '-.____.-'     ╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═╝
 ```
-
-# moa
-
-**Markov clustering + MinHash, forged 100% in Rust.**
-
-> *Extinct bird. Living clusters.*
-
-`moa` is a faithful, dependency-light reimplementation of **Markov Cluster
-Algorithm (MCL)** — Stijn van Dongen's graph-flow clusterer — with an
-alignment-free **MinHash** front-end for turning sequences into the graph MCL
-eats. It is written entirely in Rust and ships **four interchangeable expansion
-engines**: a serial reference, a rayon data-parallel engine, a distributed
-**HydraMPP** engine (laptop → SLURM), and a **GPU** engine (wgpu compute, runs on
-Vulkan/Metal/DX12/GL, software `lavapipe` included).
-
-The point of `moa` is *fidelity*: it reproduces the reference `mcl` binary's
-partitions **exactly** — 25/25 identical clusterings across a battery of graphs
-and inflation values — while giving you modern parallelism and a clean CLI.
 
 ---
 
-## Why another MCL?
+**moa** reimplements Stijn van Dongen's **MCL** (Markov Cluster Algorithm)
+from scratch in Rust and reproduces the reference **`mcl 22-282`**
+**byte-for-byte**, then runs it **up to 8.9× faster** on the same hardware.
 
-* **It's faithful.** The expansion/inflation loop, the `prune → select →
-  recover` sparsification, the *chaos* convergence test, and the DAG-based
-  interpretation are ported line-for-line from the reference C
-  (`mcl/{expand,inflate,proc,interpret}.c`, `impala/vector.c`). Same results,
-  no surprises.
-* **It's 100% Rust.** No C to build, no BLAS to find. The GPU path is wgpu
-  (pure-Rust WebGPU) so it binds whatever adapter your machine has — or a
-  software one when it has none.
-* **It scales the same code four ways.** Expansion is the whole cost of MCL, and
-  it's embarrassingly parallel over columns. Pick `serial`, `rayon`, `hydra`, or
-  `gpu`; the clustering is identical.
-* **It clusters sequences directly.** `moa cluster proteins.faa` sketches every
-  sequence with bottom-`s` MinHash, builds a Jaccard similarity graph, and runs
-  MCL on it — no all-vs-all alignment.
+| | |
+|---|---|
+| 🎯 **Exact** | **167 / 167** validation cases produce output files **byte-identical** to `mcl 22-282`. That holds under every engine, across weighted, duplicated, multi-component, tie-heavy, select/recover-heavy and overlap-producing graphs. |
+| ⚡ **Fast** | Faster than `mcl -te 2` on every benchmark graph, from **1.16×** (one dense family) to **2.3×** (BLAST all-vs-all) to **8.9×** (pangenome-scale), at about the same memory. |
+| 🧵 **Parallel two ways** | rayon over **components** *and* over **column blocks** inside large ones, chosen per iteration from the actual work. |
+| 🌐 **Distributed** | The same binary scales across nodes with **HydraMPP**: `--hydra-host`, `moa worker`, or a single `--hydra-slurm "$SLURM_JOB_NODELIST"`. |
+| 🧬 **Sequences in** | `moa cluster proteins.faa`: bottom-*s* MinHash, a **linear-time** candidate index that keeps 1,000+-member core-gene families whole, then MCL. No alignment. |
+| 🩺 **Self-proving** | `moa doctor` re-derives the friends proof, replays a corpus recorded from the real `mcl`, checks every engine bit-for-bit, and compares against `mcl` live when it is installed. |
+
+> **Upgrading from 1.0.0 or 1.1.0?** Both releases gave **wrong clusters** on real
+> inputs: summed reciprocal BLAST hits, merged attractor systems, dropped ties,
+> fragmented large families. **[BUGS.md](BUGS.md)** checks off all 24 bugs that
+> shipped in 1.x, each with its reproduction (plus 2 caught during 2.0 development).
+
+---
+
+## Contents
+
+- [Install](#install) · [Quick start](#quick-start) · [Proof](#proof-moa-doctor)
+- [Validation against mcl](#validation-against-mcl) · [Performance](#performance)
+- [How it works](#how-it-works) · [Engines & HydraMPP](#engines--hydrampp)
+- [MinHash front-end](#the-minhash-front-end) · [CLI reference](#cli-reference)
+- [Library use](#use-it-as-a-library) · [Reproduce everything](#reproduce-everything)
+- [What changed since 1.x](#what-changed-since-1x) · [Layout](#project-layout) · [Credits](#credits)
 
 ---
 
 ## Install
 
-Requires **Rust ≥ 1.75** (the pinned floor; see *MSRV* below).
-
 ```bash
-# Build everything (GPU engine on by default).
-cargo build --release
-
-# The binary:
-./target/release/moa doctor
+git clone https://github.com/raw-lab/moa && cd moa
+cargo build --release            # Rust ≥ 1.80 (tested on 1.97)
+./target/release/moa doctor      # prove it on your machine
 ```
 
-If you have no GPU stack at all and don't want wgpu in the tree:
-
-```bash
-cargo build --release --no-default-features   # serial + rayon + hydra only
-```
-
-To exercise a software GPU (Mesa lavapipe) when there's no hardware device, point
-wgpu at the ICD:
-
-```bash
-export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/lvp_icd.json
-export XDG_RUNTIME_DIR=/tmp/xdg && mkdir -p /tmp/xdg
-```
-
----
+Three runtime dependencies: `rayon`, [`hydra-mpp`](https://crates.io/crates/hydra-mpp)
+(engine only, no clap) and `serde`. No C, no BLAS, no GPU toolkit.
 
 ## Quick start
 
 ```bash
-# Cluster a labelled graph (one edge per line: "labelA labelB [weight]").
+# Cluster a graph: one "labelA labelB [weight]" edge per line (mcl's --abc format)
 moa mcl examples/friends.abc -I 2.0
-#   dan   harriet  kelly  indy  lucy
-#   ann   fred     john   gilian
-#   bob   charlie  esme
+#   dan     harriet kelly   indy    lucy
+#   ann     fred    john    gilian
+#   bob     charlie esme
 
-# Coarser clustering: lower the inflation.
-moa mcl examples/friends.abc -I 1.4        # -> two groups
+# Drop-in for mcl: same flags, same output, same file
+moa mcl blast.abc --abc -I 1.5 -te 16 -o clusters.tsv
 
-# Pick an engine (identical output, different hardware).
-moa mcl examples/friends.abc --engine gpu
-moa mcl big.abc --engine hydra -o clusters.tsv
+# Sequences straight from FASTA (MinHash graph + MCL, alignment-free)
+moa cluster examples/demo.faa -i 0.90
 
-# Cluster sequences straight from FASTA (MinHash + MCL, no alignment).
-moa cluster examples/demo.faa --min-id 0.90
-#   orfA_1  orfA_2  orfA_3
-#   orfB_1  orfB_2  orfB_3
-#   orfC_1  orfC_2
-#   lonely_1
-
-# Prove every engine agrees with the serial reference on the friends graph.
-moa doctor
-
-# Build / backend / environment details.
-moa info
+# Huge graph, whole SLURM allocation
+moa mcl huge.abc --hydra-slurm "$SLURM_JOB_NODELIST" --hydra-cpus "$SLURM_CPUS_ON_NODE" -o out.tsv
 ```
 
-Output is one cluster per line, members tab-separated, largest cluster first —
-the same shape `mcl -o` emits, so it drops into existing pipelines.
+<p align="center"><img src="docs/mcl.svg" alt="moa mcl run summary" width="760"></p>
+
+The summary goes to stderr; clusters go to stdout or `-o`, one per line,
+tab-separated, largest first, in exactly the order `mcl` writes them.
+
+## Proof: `moa doctor`
+
+<p align="center"><img src="docs/doctor.svg" alt="moa doctor output: all checks passed" width="900"></p>
+
+`doctor` exits non-zero if anything fails, so it works as a CI gate or a
+post-install check on a cluster. `--quick` runs a smaller version in under
+two seconds.
 
 ---
 
-## The algorithm (what "faithful" means here)
+## Validation against mcl
 
-MCL runs on a **column-stochastic** matrix `M` (each column is where a node's
-flow goes) and alternates two operators until a fixed point:
+The original check (25 small graphs) never exercised **select**, **recover**,
+**duplicate edges** or **interpretation overlap**: exactly where both 1.x
+releases were wrong. The 2.0.0 battery is built to hit every one of those paths
+(`scripts/gen_battery.py`) and is scored against the real `mcl 22-282` binary.
 
-1. **Expansion** — `M := M · M`. Flow spreads along length-two paths. This is the
-   only expensive step, and the only one `moa` parallelises.
-2. **Inflation** — `M[i][j] := M[i][j]^r`, renormalised per column. Raising to
-   the inflation power `r` (`-I`) sharpens strong flow and starves weak flow;
-   higher `r` ⇒ finer clusters.
+| category (cases) | what it stresses | 1.0.0 | 1.1.0 | ratio‑markov 0.5.2 | **2.0.0** |
+|---|---|:-:|:-:|:-:|:-:|
+| basic (25) | small ER / planted graphs | 25 | 25 | 10 | **25** |
+| weighted (15) | log-normal weights | 15 | 15 | 3 | **15** |
+| recip (15) | `a b w₁` + `b a w₂` + duplicates | **4** | **4** | 3 | **15** |
+| loops (10) | self-loops in the input | 10 | 10 | 4 | **10** |
+| multi (15) | 40 components, sizes 2–34 | 15 | 15 | 0 | **15** |
+| tight (54) | `-S`/`-R` small: select & recover fire, many ties | **51** | n/a¹ | — | **54** |
+| noselect (18) | prune-only / select-without-recover | 18 | n/a¹ | — | **18** |
+| large (6) | 2,500 nodes, default scheme select fires | 6 | **5** | — | **6** |
+| overlap (9) | graphs where mcl itself reports overlap | **0** | **0** | 0 | **9** |
+| **partitions identical** | | **144 / 167** | **74 / 95** | **20 / 89** | **167 / 167** |
+| **output byte-identical** | same file as `mcl -o` | 56 / 167 | — | — | **167 / 167**² |
 
-Between the two, the reference keeps `M` sparse without changing the result,
-exactly as `moa` does:
+¹ 1.1.0 has no `-R` option. ² under each of `--engine serial`, `rayon` and
+`hydra`, and also over a real multi-process HydraMPP run (host + worker over TCP).
+`ratio-markov` is the only other Rust Markov clusterer on crates.io. It is a
+dense, argmax-interpreted *variant* of MCL rather than a port, so the
+disagreement is expected; it was scored on the categories its dense matrices
+can handle.
 
-```
-precision = 0.99999 / prune                 # the absolute prune cut
-prune :  drop entries below `precision`
-recover: if a column kept < recover entries AND lost > (1 - pct) of its mass,
-         restore its `recover` largest pre-prune entries
-select : else if a column kept > select entries, keep only its `select` largest
-```
+## Performance
 
-Progress is measured by **chaos**, per the reference `vecMeasure`:
+Wall time and peak RSS, one run each on a **2-vCPU cloud VM** (7 GB RAM),
+rustc 1.97, `mcl 22-282` from Ubuntu. Every moa row produced **the same
+clusters as mcl**.
 
-```
-center    = Σ vᵢ²                      (over the full expanded column)
-maxval    = max vᵢ
-chaos_col = (maxval − center) · nnz    (nnz counted after pruning)
-chaos     = max over columns
-```
+| graph | shape | `mcl -te 1` | **moa `-t 1`** | `mcl -te 2` | **moa** (rayon) | **moa** (hydra) | speed-up vs mcl -te 2 |
+|---|---|--:|--:|--:|--:|--:|:-:|
+| **pangen300k** | 300k genes, 23k families, 2.3M edges | 24.2 s · 271 MB | **3.5 s** · 178 MB | 19.2 s · 261 MB | **2.1 s** · 183 MB | 2.4 s · 210 MB | **8.9×** |
+| **blast60k** | 60k proteins, 1.05M directed hits (both directions) | 15.9 s · 139 MB | **8.0 s** · 173 MB | 10.1 s · 136 MB | **4.5 s** · 188 MB | 4.8 s · 210 MB | **2.3×** |
+| **dense15k** | one 15k-node component, degree ~40 | 48.6 s · 185 MB | **38.6 s** · 184 MB | 25.6 s · 186 MB | **19.9 s** · 289 MB | 20.3 s · 232 MB | **1.29×** |
+| **family1500** | one 1,500-member core gene (MinHash graph) | 6.7 s · 36 MB | **5.0 s** · 36 MB | 3.4 s · 36 MB | **2.9 s** · 45 MB | 3.0 s · 51 MB | **1.16×** |
 
-Iteration stops when `chaos ≤ chaos_limit` (default `1e-4`). At a clean fixed
-point each column concentrates on one attractor, so `maxval == center` and chaos
-is exactly **0**.
+The old releases on the same machine and graphs:
 
-Clusters are then read off by `interpret.c`'s two-step: **`mclDag`** prunes `M`
-to its flow DAG using the per-column bar
+| graph | 1.0.0 | 1.1.0 |
+|---|---|---|
+| dense15k | **killed by the OOM killer** at 5.9 GB | 97.7 s · 3.9 GB · **wrong clusters** |
+| blast60k | 7.0 s · **wrong clusters** (summed reciprocal hits) | 18.0 s · **wrong clusters** |
+| pangen300k | 6.4 s · 580 MB | 19.4 s · 398 MB |
+| 1,500-member family (`moa cluster`) | **878 clusters** (expected 1) | **1,358 clusters** (expected 1) |
 
-```
-bar = selfval < maxval ? 0.999·selfval + 0.001·maxval
-                       : selfval / (1 + 0.01)
-```
+**Where the speed comes from**
 
-then **`mclInterpret`** marks *attractors* (nodes whose DAG column keeps their
-own self-loop), unions connected attractors into *attractor systems*, and
-attaches every remaining node to the system its flow reaches (a union-find over
-DAG edges, equivalent to the reference's flow closure).
-
-Defaults match the `mcl` binary's `dir_scheme` row 6: `prune 10000, select 1100,
-recover 1400, pct 0.90`, inflation `2.0`, chaos limit `1e-4`.
-
----
-
-## The four engines
-
-Expansion is a pure function of `M`, so the engine can never change the
-clustering (up to GPU single-precision rounding). That is exactly what lets
-`moa doctor` cross-check them on a live graph.
-
-| Engine   | How it expands `M·M`                                             | Precision | When to use |
-|----------|------------------------------------------------------------------|-----------|-------------|
-| `serial` | One thread; the correctness reference.                           | f64       | Small graphs, CI, ground truth. |
-| `rayon`  | Columns composed in parallel (`par_iter`), per-worker scratch.   | f64       | The default. Any multicore box. |
-| `hydra`  | Column blocks farmed out via **HydraMPP** (`map_owned`).         | f64       | Many cores / a cluster (host + clients). |
-| `gpu`    | Dense `C = A·A` compute shader via **wgpu**; re-sparsified.      | f32       | Dense-ish or mid-size graphs with a GPU. |
-
-The GPU engine densifies `M` into an `n×n` `f32` buffer, runs a tiled GEMM WGSL
-shader, reads it back, and re-sparsifies; the per-column prune and chaos then run
-on the CPU exactly as for the other engines. WGSL has no `f64`, so GPU is single
-precision — which never moves these partitions. Above `n = 2048` the GPU engine
-transparently falls back to rayon for that expansion (dense storage is `O(n²)`)
-and says so once.
-
-`moa doctor` on a machine with only software Vulkan:
-
-```
-  reference (serial): 3 clusters at -I 2.0  [expected 3]
-  serial  OK   3 clusters, 0.32 ms   [serial (1 thread)]
-  rayon   OK   3 clusters, 0.93 ms   [rayon (N threads)]
-  hydra   OK   3 clusters, 1.55 ms   [HydraMPP local (…: N CPUs, …)]
-  gpu     OK   3 clusters, 99.0 ms   [wgpu Vulkan — llvmpipe … (f32, dense GEMM, n<=2048)]
-  -I 1.4 -> 2 clusters (chaos 2.09e-5)  [expected 2]
-  ALL CHECKS PASSED
-```
+- **One fused pass per column.** Compose → measure → prune/select/recover →
+  rescale → chaos → inflate happen in one per-worker scratch buffer. The
+  unpruned `M²` is never built (that is what killed 1.0.0).
+- **Dense-or-sparse compose, per column.** When the predicted output is dense,
+  a branchless 4×-unrolled scatter plus one sweep; otherwise a touched-row list.
+  Both are bit-identical.
+- **`f32` cells, `f64` accumulation.** This is exactly mcl's numeric model, and
+  half the memory traffic of an `f64` matrix in a memory-bound kernel.
+- **Components in parallel, then reconciled.** Work-stealing over components
+  (largest first) plus nnz-balanced column blocks inside any big iterand.
+  Converged components are detected as exact fixed points and frozen.
+- **Parallel I/O.** Chunked parallel tokenising, a collision-resistant
+  label hash, and a parallel sort-and-max-merge symmetrisation: 2.3M edges
+  parse in about 0.6 s.
 
 ---
 
-## Validation
+## How it works
 
-`moa` is checked against the genuine reference binary (`mcl 22-282`, installed
-from the same source tree it ports):
+```
+ labelA labelB w ──▶ parse (parallel) ──▶ mirror + max-merge ──▶ components
+                                                                     │
+        ┌────────────── per component, in parallel ─────────────────┘
+        ▼
+   loops := column max, make stochastic                      (mclxAdjustLoops)
+        │
+        ▼  repeat ──────────────────────────────────────────────────────────┐
+   for every column j (in parallel blocks when large):                      │
+     compose   out = Σ_k M[k][j]·M[:,k]   f64 accumulate, f32 store         │
+     measure   maxval, Σv² on the full column                 (vecMeasure)  │
+     prune     keep v ≥ 0.99999/P                          (mclvSelectGqBar)│
+     recover   n<R ∧ mass<pct → top-R of pre-prune, ties kept    (mclvKBar) │
+     select    n>S → top-S, ties kept; nested recover from post-prune       │
+     rescale   v /= mass                                                     │
+     chaos     (maxval − Σv²)·n                                (expand.c:503)│
+     inflate   v^I / Σv^I                                       (mclvInflate)│
+   until max chaos < 1e-4 ──────────────────────────────────────────────────┘
+        │   reconcile every component to the global iteration count
+        ▼
+   mclDag (bar = .999·self + .001·max, or self/1.01)
+   attractor systems (largest first, lexicographic ties)
+   flow closure → overlap cut to the first system → unattached nodes gathered
+        │
+        ▼
+   clusters, written in mcl's order
+```
 
-* **25 / 25 exact partition match** across five graphs (random Erdős–Rényi and
-  planted-community, 20–80 nodes) × five inflations `{1.2, 1.4, 2.0, 3.0, 5.0}`.
-  Every clustering is set-for-set identical to `mcl`.
-* **9 / 9 cross-engine agreement** — `serial == rayon == hydra == gpu` on the
-  same graphs and inflations.
-* The canonical **friends** example gives the three named friend groups at
-  `-I 2.0` and coarsens to two at `-I 1.4`, with chaos → 0.
-* **18 tests pass** (`cargo test`): the friends proof, chaos convergence,
-  granularity monotonicity, algebraic edge cases (cliques, weak bridges, isolated
-  nodes), all-engine equivalence, and the MinHash family-recovery pipeline.
+**Why per-component is still exactly mcl.** Expansion, pruning and inflation
+are column-local, and flow never crosses between components. The one global
+coupling in mcl is its stop rule (`proc.c:463`): keep iterating *everything*
+until the worst column in the whole graph has chaos below 1e-4. moa runs each
+component to its own convergence in parallel, takes `T = max tᶜ`, advances
+every component to exactly `T` iterations (re-checking the global criterion),
+then interprets. The test `per_component_equals_whole_graph` asserts identical
+clusters **and** iteration counts against a single whole-matrix run.
 
-### How it compares
+Every rule above is ported from the `mcl 22-282` source and cited in the code:
+`src/kernel.rs` (expand.c, vector.c), `src/interpret.rs` (interpret.c,
+clew/cat.c), `src/graph.rs` (alg.c `--abc` stream, matrix.c loops),
+`src/mcl.rs` (proc.c, procinit.c).
 
-The only other Markov clusterer on crates.io is **`ratio-markov`** — a dense
-`nalgebra` variant with an integer expansion power, an evaporation constant, and
-an argmax-per-column interpretation. It is a *different algorithm*, and it shows:
+---
 
-| Graph / inflation      | reference `mcl` | `moa`            | `ratio-markov`      |
-|------------------------|-----------------|------------------|---------------------|
-| friends, `-I 2.0`      | 3 clusters      | **3 (identical)**| 2 (merges two groups) |
-| friends, `-I 1.4`      | 2 clusters      | **2 (identical)**| 1 (everything merges) |
-| planted-3, `-I 2.0`    | 3 clusters      | **3 (identical)**| 3 (agrees here)     |
-| dense random, `-I 2.0` | 5 clusters      | **5 (identical)**| 2                   |
-| sparse random, `-I 2.0`| 10 clusters     | **10 (identical)**| 5                  |
+## Engines & HydraMPP
 
-`moa` tracks the reference exactly; `ratio-markov` gives coarser, different
-partitions. Both are legitimate — only `moa` is *MCL*.
+All engines give bit-identical results. Pick one with `--engine`:
+
+| engine | how it runs | when |
+|---|---|---|
+| `auto` *(default)* | `rayon` on one node; `hydra` when a `--hydra-host`/`--hydra-slurm` role is given | always a good choice |
+| `rayon` | components ∥ (largest first) **and** column blocks ∥ inside iterands with ≥ 2,048 columns or ≥ 60k entries | one machine |
+| `hydra` | small components packed into nnz-balanced **batch tasks**; big ones driven per iteration as **column-block tasks** over a shared `Arc` matrix | many machines, or to use HydraMPP locally |
+| `serial` | one thread | reference, CI, equivalence checks |
+
+**Multi-node by hand**
+
+```bash
+# coordinator
+moa mcl huge.abc --engine hydra --hydra-host -o clusters.tsv
+# on every worker node
+moa worker --hydra-client 10.0.0.5 --hydra-cpus 32
+```
+
+**SLURM: one line, no manual workers**
+
+```bash
+#!/bin/bash
+#SBATCH --nodes=8 --ntasks-per-node=1 --cpus-per-task=48
+moa mcl huge.abc -I 1.5 -o clusters.tsv \
+    --hydra-slurm "$SLURM_JOB_NODELIST" --hydra-cpus "$SLURM_CPUS_ON_NODE"
+```
+
+The head node `srun`s moa on every other node with `--hydra-client`, and moa
+recognises that role **before** reading any input, so workers never touch the
+input file. All `--hydra-*` flags are passed straight to
+[HydraMPP](https://github.com/raw-lab/HydraMPP).
+
+---
+
+## The MinHash front-end
+
+`moa cluster` (and `moa graph`, which only writes the graph) turns sequences
+into a weighted graph without alignment:
+
+1. **Read.** FASTA ids are the header up to the first space. Residues are
+   upper-cased, and gaps, `*`, digits and CR are dropped, so soft-masked and
+   aligned input sketch the same as plain input.
+2. **Sketch.** Each sequence becomes a bottom-*s* MinHash of its *k*-mers
+   (`k = 7`, `s = 256`), with a rolling k-mer code and partial selection. Runs
+   in parallel.
+3. **Candidates, in linear time.** An inverted index over sketch hashes
+   (built by a parallel sort):
+   - buckets of ≤ 64 members contribute **all pairs**;
+   - larger buckets lay their members on a pseudo-random **ring** (6 neighbours
+     per side), so the family stays connected;
+   - plus **4 anchors** per large bucket, paired with every participant. The
+     ring alone keeps a big family connected but turns its near-clique into a
+     sparse expander, which MCL shatters. Anchors give it hub structure, so it
+     comes out as **one** cluster.
+4. **Score.** A pair becomes an edge when its Jaccard estimate clears the Mash
+   cut-off for `--min-id` (`J = f/(2−f)`, `f = p^k`) and the shorter/longer
+   length ratio clears `--len-cov`. Edges are weighted by **raw Jaccard**: 99%
+   vs 80% identity is 0.93 vs 0.12 in Jaccard (8×), but only 1.2× in identity,
+   and that contrast is what lets inflation separate paralogous subfamilies.
+5. **MCL** as above.
+
+Why `s = 256` and not less: the standard error of a bottom-*s* estimate near
+`J` is `√(J(1−J)/s)`. At `s = 48` an ortholog sitting at the 95% cut-off is
+rejected about half the time; at `s = 256`, under 2% of the time.
 
 ---
 
@@ -240,110 +287,139 @@ partitions. Both are legitimate — only `moa` is *MCL*.
 ```
 moa <command> [options]
 
-COMMANDS
-  mcl <graph>       Cluster a labelled edge graph ("labelA labelB [weight]").
-  cluster <fasta>   MinHash similarity graph over FASTA sequences, then MCL.
-  doctor            Self-test every engine against the serial reference.
-  info              Build, feature, and backend/environment details.
-  version | help
-
-COMMON OPTIONS
-  -I, --inflation <f>   Inflation / granularity (default 2.0; higher = finer).
-      --engine <e>      serial | rayon | hydra | gpu | auto  (default rayon).
-  -o, --output <file>   Write clusters to a file (default: stdout).
-  -P, --prune <n>       Prune number (default 10000; cut = 0.99999/n).
-  -S, --select <n>      Max entries kept per column (default 1100).
-  -R, --recover <n>     Recover number (default 1400).
-      --max-iter <n>    Iteration cap (default 10000; convergence is far sooner).
-  -q, --quiet           Suppress the per-run summary on stderr.
-
-CLUSTER-ONLY OPTIONS
-  -k <n>                k-mer size (default 7).
-  -s <n>                Bottom-s sketch size (default 256; larger = less noise).
-      --min-id <f>      Minimum identity for an edge (default 0.95).
-      --len-cov <f>     Minimum length ratio, shorter/longer (default 0.70).
+  mcl <graph|->      cluster a weighted graph — a faithful, parallel `mcl --abc`
+  cluster <fasta|->  MinHash similarity graph over sequences, then MCL
+  graph <fasta|->    write the MinHash similarity graph only (labelA labelB jaccard)
+  doctor [--quick]   self-test against the reference, on this machine
+  info               build, runtime, engines and every default
+  version [--short]  version and build provenance
+  worker             serve as a HydraMPP worker node (with --hydra-client)
+  help [command]     overview, or details for one command
 ```
 
+**MCL options** (names and defaults match `mcl -z`)
+
+| flag | meaning | default |
+|---|---|---|
+| `-I <f>` | inflation; higher = finer clusters | 2.0 |
+| `-P <n>` | prune entries below `0.99999/n` (0 = off) | 10000 |
+| `-S <n>` | keep at most *n* entries per column (0 = off) | 1100 |
+| `-R <n>` | recover up to *n* entries when pruning lost mass (0 = off) | 1400 |
+| `-pct <n>` | recovery percentage | 90 |
+| `-L <n>` | main loop length | 10000 |
+| `--engine <e>` | `auto` · `rayon` · `hydra` · `serial` | auto |
+| `-o <file>` | output (`-` = stdout) | stdout |
+| `--stats <file>` | JSON run summary (iterations, chaos, overlap, timings…) | — |
+| `-v`, `-q` | per-phase and per-iteration trace / silence | — |
+| `--abc` | accepted for drop-in use (moa always reads label pairs) | — |
+
+**MinHash options** (`cluster`, `graph`): `-i/--min-id 0.95`, `-k/--kmer 7`,
+`-s/--sketch 256`, `--len-cov 0.70`, `--dense-bucket 64`, `--fanout 6`,
+`--anchors 4`, `--edges <file>` (also write the graph).
+
+**Global:** `-t/--threads <n>` (mcl's `-te` works too), `--color auto|always|never`
+(`NO_COLOR` is honoured), `--hydra-host`, `--hydra-client <ip>`,
+`--hydra-slurm <nodelist>`, `--hydra-cpus <n>`, `--hydra-port <p>`.
+
+**Input rules** (as `mcl --abc`): undirected; duplicates and the two directions
+of a pair merge by **max**; any input self-loop is reset to the column's
+maximum. Two deliberate departures, both for invalid input: non-positive or
+non-finite weights are **dropped with a warning** (mcl turns them into
+meaningless negative "flow"), and a malformed weight such as `5x` is an
+**error naming the line** (mcl reads the `5`).
+
 ---
 
-## The MinHash front-end
+## Use it as a library
 
-`moa cluster` turns sequences into a weighted graph without alignment:
+```rust
+use moa_core::{cluster_abc, Engine, MclParams};
 
-1. **Sketch.** Each sequence becomes its bottom-`s` MinHash sketch of `k`-mers —
-   the `s` smallest distinct 64-bit hashes. Default `k = 7`, `s = 256`. Sketching
-   is done in parallel (one rayon task per sequence).
-2. **Candidate pairs.** Sequences sharing a sketch hash are candidates; hashes
-   shared by more than `max_bucket` sequences (low-complexity) are skipped so the
-   candidate list never goes quadratic.
-3. **Score & threshold.** Each candidate pair's Jaccard is estimated from the
-   sketches and kept if it clears the cut-off derived from `--min-id` via the
-   **Mash** relation `J = f/(2−f)`, `f = p^k`, and passes the `--len-cov` length
-   ratio.
-4. **Weight.** Edges are weighted by the **raw Jaccard**, not the Mash identity —
-   the Jaccard contrast between a 99%- and an 80%-identical pair is ~8× versus
-   ~1.2× for identity, and that contrast is what lets inflation resolve
-   paralogous subfamilies inside a component.
+let text = std::fs::read("graph.abc")?;
+let p = MclParams { inflation: 1.8, ..Default::default() };
+let (labels, out) = cluster_abc(&text, &p, &Engine::Rayon)?;
+for c in &out.clusters {
+    let names: Vec<&str> = c.iter().map(|&i| labels[i as usize].as_str()).collect();
+    println!("{}", names.join("\t"));
+}
+println!("{} iterations, chaos {:.1e}, {} overlaps cut", out.iterations, out.chaos, out.overlap);
+```
 
-Why `s = 256` and not less: the standard error of a bottom-`s` Jaccard estimate
-near `J` is `sqrt(J(1−J)/s)`. At `s = 48`, `J ≈ 0.54` that is ±0.072 — a true
-ortholog at the threshold is rejected ~half the time. At `s = 256` the same pair
-is rejected under 2% of the time.
+Lower levels are public too: `graph::{parse_abc, Graph, Csc}`, `mcl::{run, advance, CompRun}`,
+`kernel::step_column`, `interpret::{dag, interpret}`, `minhash::{sketch_many, build_graph, CandidateIndex}`,
+and `engine::{Engine, HydraEngine}`.
 
----
+## Reproduce everything
+
+```bash
+cargo test --release                 # 29 tests: unit, integration, doctest
+moa doctor                           # 16 live checks
+scripts/validate.sh                  # 167-case battery vs mcl + byte-identity per engine
+python3 scripts/gen_perf.py bench/   # benchmark graphs, then:
+python3 scripts/perf.py bench/blast60k.abc "mcl=mcl {g} --abc -te 2 -o -" "moa=target/release/moa mcl {g}"
+```
+
+`scripts/find_regress.py` regenerates `src/regress.rs`. It searches for tiny
+graphs on which an old binary disagrees with `mcl`, and records mcl's answer.
+
+## What changed since 1.x
+
+2.0.0 merges the two 1.x lines (1.0.0's engines, 1.1.0's component splitting
+and candidate index), fixes everything they got wrong, and drops the vendored
+HydraMPP for the published crate. Highlights; **[BUGS.md](BUGS.md)** has the
+full checklist with reproductions:
+
+- **Correct on real input:** max-merge of reciprocal hits · faithful
+  interpretation with overlap cut · tie-inclusive select/recover · correct
+  nested recover · strict stop rule · mcl's `float` cells.
+- **Robust:** no more `M²` blow-up (5.9 GB → 185 MB) · large families stay whole ·
+  `-k 0`, `inf`/`NaN` and malformed weights handled · FASTA case/garbage
+  handling.
+- **Fast & distributed:** fused kernel · components ∥ columns · HydraMPP
+  host/worker/SLURM · zero-copy `Arc` iterands.
+- **Removed:** 1.0.0's dense GPU path (O(n²), capped at 2,048 nodes, `f32`
+  accumulation that could never match mcl).
+
+See [CHANGELOG.md](CHANGELOG.md).
 
 ## Project layout
 
 ```
 moa/
-├── Cargo.toml            workspace root (release LTO profile, MSRV pins)
-├── Cargo.lock            committed, pinned for Rust 1.75
-├── examples/
-│   ├── friends.abc       the canonical MCL example
-│   └── demo.faa          a small multi-family FASTA
-├── moa/                  the crate
-│   ├── src/
-│   │   ├── matrix.rs     CSC sparse matrix (build, loops, stochastic)
-│   │   ├── mcl.rs        expansion/inflation loop, prune/select/recover, chaos
-│   │   ├── interpret.rs  mclDag + mclInterpret (attractors → clusters)
-│   │   ├── minhash.rs    bottom-s sketching, similarity graph, FASTA reader
-│   │   ├── backend/
-│   │   │   ├── mod.rs    engine dispatch + the shared column-compose kernel
-│   │   │   ├── cpu.rs    serial + rayon expansion
-│   │   │   ├── hydra.rs  HydraMPP distributed expansion
-│   │   │   └── gpu.rs    wgpu dense-GEMM expansion
-│   │   ├── art.rs        the moa mascot & banners
-│   │   ├── lib.rs        pipelines, graph parsing, embedded friends graph
-│   │   └── main.rs       CLI
-│   └── tests/
-│       └── integration.rs   the friends proof, engine equivalence, MinHash
-└── vendor/
-    └── hydra-mpp-core/   HydraMPP (vendored, path dependency)
+├── Cargo.toml · Cargo.lock · build.rs
+├── README.md · BUGS.md · CHANGELOG.md · LICENSE
+├── src/
+│   ├── main.rs        CLI: mcl · cluster · graph · worker · info · version · help
+│   ├── doctor.rs      the self-test
+│   ├── lib.rs         pipelines: cluster_abc, cluster_fasta
+│   ├── graph.rs       --abc parsing, max-merge symmetrisation, components, CSC
+│   ├── kernel.rs      the fused column step (compose → … → inflate)
+│   ├── mcl.rs         parameters, per-component iteration, global reconciliation
+│   ├── interpret.rs   mclDag + mclInterpret + overlap cut
+│   ├── engine.rs      serial · rayon · HydraMPP
+│   ├── minhash.rs     sketches, linear candidate index with anchors, FASTA
+│   ├── regress.rs     corpus recorded from mcl 22-282 (generated)
+│   ├── synth.rs       deterministic test inputs
+│   ├── art.rs         the face, the wordmark, colour, panels
+│   └── util.rs        FxHash (+ SplitMix finaliser), epoch marker
+├── tests/integration.rs
+├── examples/          friends.abc · demo.faa
+├── scripts/           validation battery, byte checks, benchmarks, ansi2svg
+└── docs/              terminal renders used in this README
 ```
 
-### MSRV
+## Credits
 
-The floor is **Rust 1.75**. The `wgpu 0.19` dependency tree's newest transitive
-*patch* releases have crept past that (they require the unstable `edition2024`
-cargo feature), so `Cargo.toml` pins `hashbrown = 0.14.5`, `indexmap = 2.2.6`,
-`zerocopy = 0.7.35`, and `Cargo.lock` pins `rayon-core = 1.12.1`, behind the GPU
-feature. Bump these together with the Rust floor, not before. Building
-`--no-default-features` drops the GPU tree and all of its pins.
+- **MCL** is Stijn van Dongen's: *Graph Clustering by Flow Simulation* (PhD
+  thesis, Utrecht, 2000) and *Graph Clustering Via a Discrete Uncoupling
+  Process* (SIAM J. Matrix Anal. Appl. 30(1):121–141, 2008). moa is an
+  independent Rust implementation validated against `mcl 22-282`; it contains
+  no MCL source. Please cite van Dongen when you publish MCL clusterings.
+- **HydraMPP** is by Jose L. Figueroa III and Richard Allen White III (RAW Lab):
+  [crates.io/crates/hydra-mpp](https://crates.io/crates/hydra-mpp).
+- **rayon** and **serde** are by their respective authors.
 
----
+Part of the **RAW Lab** open-source toolkit · [rawlab.org](https://www.rawlab.org) ·
+[github.com/raw-lab](https://github.com/raw-lab)
 
-## Credits & provenance
-
-* **MCL** — the algorithm and the reference implementation are Stijn van
-  Dongen's (*Graph Clustering by Flow Simulation*, PhD thesis, Utrecht, 2000).
-  `moa` is an independent Rust port validated against `mcl 22-282`; it bundles no
-  MCL source.
-* **HydraMPP** — the vendored distributed task engine is by Jose L. Figueroa III
-  and Richard Allen White III (RAW Lab, github.com/raw-lab/HydraMPP).
-* **wgpu / rayon / serde** — their respective authors.
-* **`ratio-markov`** (comparison only) — used to contrast a different Rust
-  Markov-clustering variant; not a dependency of `moa`.
-
-Part of the RAW Lab open-source toolkit — www.rawlab.org · github.com/raw-lab
-
-License: **CC-BY-NC-4.0**.
+License: **CC-BY-NC-4.0**. See [LICENSE](LICENSE).

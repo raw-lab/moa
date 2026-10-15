@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="895" height="88" viewBox="0 0 895 88">
+<style>text{font-family:"JetBrains Mono","DejaVu Sans Mono",Menlo,Consolas,monospace;font-size:14px;white-space:pre;dominant-baseline:alphabetic}</style>
+<rect width="895" height="88" rx="10" fill="#14161a"/>
+<rect width="895" height="28" rx="10" fill="#22252b"/><rect y="18" width="895" height="10" fill="#22252b"/>
+<circle cx="18" cy="14" r="6" fill="#ff5f56"/><circle cx="38" cy="14" r="6" fill="#ffbd2e"/><circle cx="58" cy="14" r="6" fill="#27c93f"/>
+<text x="447.5" y="19" fill="#8b9099" text-anchor="middle" style="font-size:12px">moa mcl examples/friends.abc -I 2.0</text>
+<text x="18.0" y="50.8" fill="#af875f" textLength="8.4" lengthAdjust="spacingAndGlyphs">(</text>
+<text x="26.4" y="50.8" fill="#ffffd7" font-weight="700" textLength="8.4" lengthAdjust="spacingAndGlyphs">o</text>
+<text x="34.9" y="50.8" fill="#af875f" textLength="16.9" lengthAdjust="spacingAndGlyphs">)&gt;</text>
+<text x="60.1" y="50.8" fill="#d4d4d4" font-weight="700" textLength="59.0" lengthAdjust="spacingAndGlyphs">moa mcl</text>
+<text x="136.0" y="50.8" fill="#d4d4d4" textLength="67.4" lengthAdjust="spacingAndGlyphs">12 nodes</text>
+<text x="211.9" y="50.8" fill="#d4d4d4" opacity="0.6" textLength="8.4" lengthAdjust="spacingAndGlyphs">·</text>
+<text x="228.8" y="50.8" fill="#d4d4d4" textLength="67.4" lengthAdjust="spacingAndGlyphs">20 edges</text>
+<text x="304.6" y="50.8" fill="#d4d4d4" opacity="0.6" textLength="8.4" lengthAdjust="spacingAndGlyphs">·</text>
+<text x="321.5" y="50.8" fill="#d4d4d4" textLength="92.7" lengthAdjust="spacingAndGlyphs">1 component</text>
+<text x="431.1" y="50.8" fill="#8a8a8a" textLength="8.4" lengthAdjust="spacingAndGlyphs">→</text>
+<text x="456.4" y="50.8" fill="#5fd787" font-weight="700" textLength="84.3" lengthAdjust="spacingAndGlyphs">3 clusters</text>
+<text x="549.1" y="50.8" fill="#d4d4d4" opacity="0.6" textLength="8.4" lengthAdjust="spacingAndGlyphs">·</text>
+<text x="565.9" y="50.8" fill="#d4d4d4" textLength="101.2" lengthAdjust="spacingAndGlyphs">8 iterations</text>
+<text x="675.5" y="50.8" fill="#d4d4d4" opacity="0.6" textLength="8.4" lengthAdjust="spacingAndGlyphs">·</text>
+<text x="692.4" y="50.8" fill="#d4d4d4" textLength="109.6" lengthAdjust="spacingAndGlyphs">chaos 7.57e-6</text>
+<text x="810.4" y="50.8" fill="#d4d4d4" opacity="0.6" textLength="8.4" lengthAdjust="spacingAndGlyphs">·</text>
+<text x="827.3" y="50.8" fill="#d4d4d4" font-weight="700" textLength="50.6" lengthAdjust="spacingAndGlyphs">626 µs</text>
+<text x="34.9" y="67.2" fill="#d4d4d4" opacity="0.6" textLength="623.8" lengthAdjust="spacingAndGlyphs">[rayon · 2 threads · components ∥ columns]  iterate 57 µs · interpret 6 µs</text>
+</svg>
